@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import generate as gen
 
 
 class Agent:
@@ -67,6 +68,8 @@ class AS:
     def __init__(self, arguments, attacks):
         self.arguments = arguments
         self.attacks = attacks
+
+    
 
 
 class WAS:
