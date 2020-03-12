@@ -75,9 +75,8 @@ class WAS:
         self.labelOut = set()
         self.labelIn = set()
         for att in sys.attacks:
-            if att.vectorEval.weight > 0:
-                self.labelIn.add(att.a.name)
-                self.labelOut.add(att.b.name)
+            self.labelIn.add(att.a.name)
+            self.labelOut.add(att.b.name)
         print("In labelled are:")
         print(self.labelIn)
         print("Out labelled are:")
