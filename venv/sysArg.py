@@ -78,9 +78,6 @@ class WAS:
             if att.vectorEval.weight > 0:
                 self.labelIn.add(att.a.name)
                 self.labelOut.add(att.b.name)
-            else:
-                self.labelIn.add(att.b.name)
-                self.labelOut.add(att.a.name)
         print("In labelled are:")
         print(self.labelIn)
         print("Out labelled are:")
@@ -96,8 +93,8 @@ class WAS:
             valueLabels.update({(att.a.name, att.b.name): '<' + str(att.vectorEval.weight) + "," + str(att.vectorEval.maxWeight) + '>'})
         pos = nx.spring_layout(G)
         nx.draw_networkx_edge_labels(G, pos, edge_labels=valueLabels, font_color='red')
-        nx.draw(G, pos, edge_color='black', edge_size=650, width=1, linewidths=1,
-                node_size=500, node_color='pink', alpha=1,
+        nx.draw(G, pos, edge_color='black', length = 100, width=1,size=20, linewidths=1,
+                node_size=300, node_color='pink', alpha=1,
                 labels={node: node for node in G.nodes()}
                 )
 
