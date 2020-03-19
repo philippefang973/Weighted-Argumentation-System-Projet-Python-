@@ -1,7 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import generate as gen
-
+import random as rand
 
 class Agent:
     def __init__(self, name, expertises):
@@ -104,7 +104,6 @@ class AS:
                     elif l[x.name] == "out" and n.name not in in_attacked and l[n.name]!="in": l[n.name] = "in"
                     if n.name not in visited : tmp.append(n)
         return l
-
     
 class WAS:
     def __init__(self,sys,v):
@@ -142,6 +141,18 @@ class WAS:
     def labels(self) :
         c = self.counterpartAS()
         return c.labels()
+
+    def attacks(self,lmbda,epsilon) :
+        l = {}
+        for v in self.vectors :
+            w,mw,t = v.weight,v.maxWeight,len(v.attack.top)
+            if (w==0 and mw==0) or (float(mw)/float(t)>lmbda and float(abs(w))/float(mw)>epsilon) :
+                l["("+v.attack.a.name+","+v.attack.b.name+")"] = "bd"
+            elif (w>0 and w-t>0) or (w<=0 and abs(w)-t>=0) :
+                l["("+v.attack.a.name+","+v.attack.b.name+")"] = "str"
+            else :
+                l["("+v.attack.a.name+","+v.attack.b.name+")"] = "wk"
+        return l
 
 
 def votes(vector,agent,sign):
@@ -204,11 +215,16 @@ def main():
     votes(vda,PC2,1)
     vectors = [vba,vda,vcb]
     sysw = WAS(w,vectors)
-    #print(sysw.labels())
+    print(sysw.labels())
+    #l,e = rand.randint(0,3),rand.uniform(0,1)
+    #print(l,e)
+    print(sysw.attacks(4,0.5))
+    sysw.affichegraphe()
     #sysw.counterpartAS().affichegraphe()
-
+'''
     was = generate_was(5)
     c = was.counterpartAS()
     print(c.labels())
     c.affichegraphe()
+'''
 main()
