@@ -7,13 +7,12 @@ class Agent:
     def __init__(self, name, expertises):
         self.expertises = expertises
         self.name = name
-        self.impact = {}
 
-    def setImpact(self, a):
-        interProm = self.expertises.intersection(a.prom)
-        interRel = self.expertises.intersection(a.rel)
+    def getImpact(self, att):
+        interProm = self.expertises.intersection(att.prom)
+        interRel = self.expertises.intersection(att.rel)
         i = 2*len(interProm)+len(interRel)
-        self.impact.update({a.name: i})
+        return i
 
 
 class Argument:
@@ -23,27 +22,22 @@ class Argument:
 
 
 class VectorEval:
-    def __init__(self):
+    def __init__(self,a):
+        self.attack = a
         self.weight = 0
         self.maxWeight = 0
 
-    def updateWeights(self, a, v, at):
-        self.weight += a.impact[at.name]*v
-        notdummy = 0
-        for value in at.votingAgents.values():
-            if value > 0:
-                notdummy += 1
-        self.maxWeight = len(at.top)*notdummy
-
+    def updateWeights(self, a, sign):
+        i = a.getImpact(self.attack)
+        if i != 0 : 
+            self.weight += i*sign
+            self.maxWeight += len(self.attack.top)
 
 class Attack:
     def __init__(self, a, b, name):
         self.name = name
         self.a = a
         self.b = b
-        self.votes = {}
-        self.vectorEval = VectorEval()
-        self.votingAgents = {}
         self.top = list(a.topics)+list(b.topics)
         self.prom = a.topics.intersection(b.topics)
         self.rel = (a.topics - b.topics).union(b.topics - a.topics)
@@ -53,15 +47,6 @@ class Attack:
         print(self.prom)
         print("Rel are: ")
         print(self.rel)
-        print("Agents impacts on this attack are:")
-        print(self.votingAgents)
-        print("Vector is: ")
-        print("<"+str(self.vectorEval.weight)+","+str(self.vectorEval.maxWeight)+">")
-
-    def addVote(self, a, v):
-        self.votes.update({a:v})
-        self.votingAgents.update({a.name:a.impact[self.name]})
-        self.vectorEval.updateWeights(a, v, self)
 
 
 class AS:
@@ -69,19 +54,31 @@ class AS:
         self.arguments = arguments
         self.attacks = attacks
 
-class WAS:
-    def __init__(self, sys):
-        self.sys = sys
-        self.labelOut = set()
-        self.labelIn = set()
-        for att in sys.attacks:
-            self.labelIn.add(att.a.name)
-            self.labelOut.add(att.b.name)
-        print("In labelled are:")
-        print(self.labelIn)
-        print("Out labelled are:")
-        print(self.labelOut)
+    def affichegraphe(self):
+        G = nx.DiGraph()
+        for arg in self.arguments:
+            G.add_node(arg.name)
+        for att in self.attacks:
+            G.add_edge(att.a.name, att.b.name)
+        pos = nx.spring_layout(G)
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=valueLabels, font_color='red')
+        nx.draw(G, pos, edge_color='black', length = 100, width=1,size=20, linewidths=1,
+                node_size=300, node_color='pink', alpha=1,
+                labels={node: node for node in G.nodes()}
+                )
+        plt.show()
 
+class WAS:
+    def __init__(self,sys,v):
+        self.sys = sys
+        self.vectors = v
+
+    def getAttack(self,att) :
+        for v in self.vectors :
+            if v.attack.name == att.name :
+                return v
+        return None
+        
     def affichegraphe(self):
         G = nx.DiGraph()
         valueLabels = {}
@@ -89,28 +86,27 @@ class WAS:
             G.add_node(arg.name)
         for att in self.sys.attacks:
             G.add_edge(att.a.name, att.b.name)
-            valueLabels.update({(att.a.name, att.b.name): '<' + str(att.vectorEval.weight) + "," + str(att.vectorEval.maxWeight) + '>'})
+            tmp = self.getAttack(att)
+            valueLabels.update({(att.a.name, att.b.name): '<' + str(tmp.weight) + "," + str(tmp.maxWeight) + '>'})
         pos = nx.spring_layout(G)
         nx.draw_networkx_edge_labels(G, pos, edge_labels=valueLabels, font_color='red')
         nx.draw(G, pos, edge_color='black', length = 100, width=1,size=20, linewidths=1,
                 node_size=300, node_color='pink', alpha=1,
                 labels={node: node for node in G.nodes()}
                 )
-
         plt.show()
 
 
-def votes(agent, attack, vote):
-    agent.setImpact(attack)
-    attack.addVote(agent, vote)
+def votes(vector,agent,sign):
+    vector.updateWeights(agent,sign)
 
-def generate_was() :
-     gen.generate_file("randomized.txt")
+def generate_was(n) :
+     gen.generate_file("randomized.txt",n)
      with open("randomized.txt","r") as fd :
         l = fd.readlines()
         s = l[0].split(";")
         nAgent,nArgument,nAttack,nVotes = int(s[0]),int(s[1]),int(s[2]),int(s[3])
-        agents,args,attacks=[],[],[]
+        agents,args,attacks,vectors=[],[],[],[]
         x,y = 1,1
         for i in range(nAgent):
             s = l[x+i].split(";")
@@ -124,41 +120,48 @@ def generate_was() :
         x = y
         for i in range(nAttack):
             s = l[x+i].split(";")
-            attacks.append(Attack(args[int(s[1])],args[int(s[2])],s[0]))
+            a = Attack(args[int(s[1])],args[int(s[2])],s[0])
+            attacks.append(a)
+            vectors.append(VectorEval(a))
             y+=1
         x = y
         for i in range(nVotes):
             s = l[x+i].split(";")
-            votes(agents[int(s[1])],attacks[int(s[2])],int(s[3]))
+            votes(vectors[int(s[2])],agents[int(s[1])],int(s[3]))
         w = AS(set(args),set(attacks))
-        sysw = WAS(w)
+        sysw = WAS(w,vectors)
         return sysw
 
 
 def main():
     '''
-    aman = Agent("aman", {"biology", "nutrition"})
-    philippe = Agent("philippe", {"health", "psychology"})
-    a = Argument({"nutrition", "health", "biology", "fitness"}, "a")
-    c = Argument({"health",  "fitness"}, "c")
-    b = Argument({"nutrition", "psychology"}, "b")
-    d = Argument({"health", "fitness", "beauty"}, "d")
-    e = Argument({"biology", "psychology", 'health'}, "e")
-    ab = Attack(a, b, "ab")
-    ac = Attack(a, c, "ac")
-    de = Attack(d, e, "de")
-    votes(aman, ab, 1)
-    votes(philippe, ab, -1)
-    votes(aman, ac, 1)
-    votes(philippe, ac, -1)
-    votes(aman, de, -1)
-    votes(philippe, de, 1)
-    w = AS({a, b, c, d, e}, {ab, ac, de})
-    sysw = WAS(w)
-    #ab.affichetout()
-    #sysw.affichegraphe()
-    '''
-    was = generate_was()
+    was = generate_was(6)
     was.affichegraphe()
+    '''
+    PC1 = Agent("PC1",{"kr","cog"})
+    PC2 = Agent("PC2",{"kr","comp"})
+    PC3 = Agent("PC3",{"comp","ml"})
+    a = Argument({"kr","cog"},"a")
+    b = Argument({"comp"},"b")
+    c = Argument({"comp","ml"},"c")
+    d = Argument({"kr"},"d")
+    ba = Attack(b,a,"ba")
+    da = Attack(d,a,"da")
+    cb = Attack(c,b,"cb")
+    w = AS({a,b,c,d},{ba,da,cb})
+    vba = VectorEval(ba)
+    vda = VectorEval(da)
+    vcb = VectorEval(cb)
+    votes(vcb,PC1,-1)
+    votes(vcb,PC2,1)
+    votes(vcb,PC3,1)
+    votes(vba,PC2,1)
+    votes(vba,PC1,-1)
+    votes(vba,PC3,-1)
+    votes(vda,PC2,1)
+    vectors = [vba,vda,vcb]
+    sysw = WAS(w,vectors)
+    sysw.affichegraphe()
+    
     
 main()

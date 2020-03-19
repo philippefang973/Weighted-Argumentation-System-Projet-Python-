@@ -9,9 +9,9 @@ def random_partition(l) :
         s = s-tmp
     return res
 
-def generate_file(f) :
+def generate_file(f,nAg) :
     #Data generation
-    nAgent = rand.randint(5,15)
+    nAgent = nAg
     top = range(rand.randint(nAgent,nAgent*2))
     agents = [rand.sample(top,rand.randint(1,5)) for i in range(nAgent)]
     arguments = [random_partition(l) for l in agents]
