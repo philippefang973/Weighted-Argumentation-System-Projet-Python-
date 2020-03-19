@@ -50,6 +50,6 @@ def generate_file(f,nAg) :
                 x+=1
                 fd.write("\n")
         for i in range(len(attacks)) :
-            fd.write("attack"+str(i)+";"+str(attacks[i][0])+";"+str(attacks[i][1])+";\n")
+            fd.write("attack"+str(i)+";argument"+str(attacks[i][0])+";argument"+str(attacks[i][1])+";\n")
         for i in range(len(votes)) :
-            fd.write("vote"+str(i)+";"+str(votes[i][0])+";"+str(votes[i][1])+";"+str(votes[i][2])+";\n")
+            fd.write("vote"+str(i)+";agent"+str(votes[i][0])+";attack"+str(votes[i][1])+";"+str(votes[i][2])+";\n")

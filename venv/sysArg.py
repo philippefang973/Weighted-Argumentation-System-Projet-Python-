@@ -8,6 +8,9 @@ class Agent:
         self.expertises = expertises
         self.name = name
 
+    def __str__(self) :
+        return "Agent("+self.name+","+str(self.expertises)+")"
+
     def getImpact(self, att):
         interProm = self.expertises.intersection(att.prom)
         interRel = self.expertises.intersection(att.rel)
@@ -19,6 +22,9 @@ class Argument:
     def __init__(self, topics, name):
         self.topics = topics
         self.name = name
+        
+    def __str__(self) :
+        return "Argument("+self.name+","+str(self.topics)+")"
 
 
 class VectorEval:
@@ -26,7 +32,10 @@ class VectorEval:
         self.attack = a
         self.weight = 0
         self.maxWeight = 0
-        
+
+    def __str__(self) :
+        return "VectoEval("+str(self.attack)+","+str(self.weight)+","+str(self.maxWeight)+")"
+    
     def updateWeights(self, a, sign):
         i = a.getImpact(self.attack)
         if i != 0 : 
@@ -41,6 +50,10 @@ class Attack:
         self.top = list(a.topics)+list(b.topics)
         self.prom = a.topics.intersection(b.topics)
         self.rel = (a.topics - b.topics).union(b.topics - a.topics)
+        
+    def __str__(self) :
+        return "Attack("+str(self.a)+","+str(self.b)+")"
+        
 
     def affichetout(self):
         print("Prom are: ")
@@ -158,73 +171,51 @@ class WAS:
 def votes(vector,agent,sign):
     vector.updateWeights(agent,sign)
 
-def generate_was(n) :
-     gen.generate_file("randomized.txt",n)
-     with open("randomized.txt","r") as fd :
+def was_from_file(f) :
+     with open(f,"r") as fd :
         l = fd.readlines()
         s = l[0].split(";")
         nAgent,nArgument,nAttack,nVotes = int(s[0]),int(s[1]),int(s[2]),int(s[3])
-        agents,args,attacks,vectors=[],[],[],[]
+        agents,args,attacks,vectors={},{},{},{}
         x,y = 1,1
         for i in range(nAgent):
             s = l[x+i].split(";")
-            agents.append(Agent(s[0],set(s[1:-1])))
+            agents[s[0]] = Agent(s[0],set(s[1:-1]))
             y+=1
         x = y
         for i in range(nArgument):
             s = l[x+i].split(";")
-            args.append(Argument(set(s[1:-1]),s[0]))
+            args[s[0]] = Argument(set(s[1:-1]),s[0])
             y+=1
         x = y
         for i in range(nAttack):
             s = l[x+i].split(";")
-            a = Attack(args[int(s[1])],args[int(s[2])],s[0])
-            attacks.append(a)
-            vectors.append(VectorEval(a))
+            a = Attack(args[s[1]],args[s[2]],s[0])
+            attacks[s[0]] = a 
+            vectors[s[0]] = VectorEval(a)
             y+=1
         x = y
         for i in range(nVotes):
             s = l[x+i].split(";")
-            votes(vectors[int(s[2])],agents[int(s[1])],int(s[3]))
-        w = AS(set(args),set(attacks))
-        sysw = WAS(w,vectors)
+            votes(vectors[s[2]],agents[s[1]],int(s[3]))
+        w = AS(set(args.values()),set(attacks.values()))
+        sysw = WAS(w,vectors.values())
         return sysw
 
 
 def main():
-    PC1 = Agent("PC1",{"kr","cog"})
-    PC2 = Agent("PC2",{"kr","comp"})
-    PC3 = Agent("PC3",{"comp","ml"})
-    a = Argument({"kr","cog"},"a")
-    b = Argument({"comp"},"b")
-    c = Argument({"comp","ml"},"c")
-    d = Argument({"kr"},"d")
-    ba = Attack(b,a,"ba")
-    da = Attack(d,a,"da")
-    cb = Attack(c,b,"cb")
-    w = AS({a,b,c,d},{ba,da,cb})
-    vba = VectorEval(ba)
-    vda = VectorEval(da)
-    vcb = VectorEval(cb)
-    votes(vcb,PC1,-1)
-    votes(vcb,PC2,1)
-    votes(vcb,PC3,1)
-    votes(vba,PC2,1)
-    votes(vba,PC1,-1)
-    votes(vba,PC3,-1)
-    votes(vda,PC2,1)
-    vectors = [vba,vda,vcb]
-    sysw = WAS(w,vectors)
+    sysw = was_from_file("example.txt")
     print(sysw.labels())
     #l,e = rand.randint(0,3),rand.uniform(0,1)
     #print(l,e)
     print(sysw.attacks(4,0.5))
     sysw.affichegraphe()
     #sysw.counterpartAS().affichegraphe()
-'''
-    was = generate_was(5)
+    '''
+    gen.generate_file("randomized.txt",5)
+    was = was_from_file("randomized.txt")
     c = was.counterpartAS()
     print(c.labels())
     c.affichegraphe()
-'''
+    '''
 main()
