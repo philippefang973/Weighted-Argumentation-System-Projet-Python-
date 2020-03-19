@@ -9,7 +9,7 @@ def random_partition(l) :
         s = s-tmp
     return res
 
-def generate_file(f) :
+def generate_was(f) :
     #Data generation
     nAgent = rand.randint(5,15)
     top = range(rand.randint(nAgent,nAgent*2))
@@ -26,12 +26,13 @@ def generate_file(f) :
     attacks = []
     for i in range(nArgument) :
          for j in rand.sample(range(nArgument),rand.randint(0,nArgument)) :
-             if i!=j and rand.choice([True,False]) : attacks.append((i,j))
+             if i!=j : attacks.append((i,j))
 
     votes = []
     for i in range(nAgent) :
         for j in range(len(attacks)) :
             votes.append((i,j,1 if attacks[j][0] in ind[i] else rand.choice([1,-1])))
+    print(votes)
             
     #File writing
     with open(f,"w+") as fd :
@@ -50,6 +51,8 @@ def generate_file(f) :
                 x+=1
                 fd.write("\n")
         for i in range(len(attacks)) :
-            fd.write("attack"+str(i)+";"+str(attacks[i][0])+";"+str(attacks[i][1])+";\n")
+            fd.write("attack"+str(i)+";argument"+str(attacks[i][0])+";argument"+str(attacks[i][1])+";\n")
         for i in range(len(votes)) :
-            fd.write("vote"+str(i)+";"+str(votes[i][0])+";"+str(votes[i][1])+";"+str(votes[i][2])+";\n")
+            fd.write("vote"+str(i)+";agent"+str(votes[i][0])+";attack"+str(votes[i][1])+";"+str(votes[i][2])+";\n")
+           
+generate_was("randomized.txt")

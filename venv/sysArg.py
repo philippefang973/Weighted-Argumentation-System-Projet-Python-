@@ -69,9 +69,6 @@ class AS:
         self.arguments = arguments
         self.attacks = attacks
 
-    
-
-
 class WAS:
     def __init__(self, sys):
         self.sys = sys
@@ -108,8 +105,39 @@ def votes(agent, attack, vote):
     agent.setImpact(attack)
     attack.addVote(agent, vote)
 
+def generate_was() :
+     gen.generate_file("randomized.txt")
+     with open("randomized.txt","r") as fd :
+        l = fd.readlines()
+        s = l[0].split(";")
+        nAgent,nArgument,nAttack,nVotes = int(s[0]),int(s[1]),int(s[2]),int(s[3])
+        agents,args,attacks=[],[],[]
+        x,y = 1,1
+        for i in range(nAgent):
+            s = l[x+i].split(";")
+            agents.append(Agent(s[0],set(s[1:-1])))
+            y+=1
+        x = y
+        for i in range(nArgument):
+            s = l[x+i].split(";")
+            args.append(Argument(set(s[1:-1]),s[0]))
+            y+=1
+        x = y
+        for i in range(nAttack):
+            s = l[x+i].split(";")
+            attacks.append(Attack(args[int(s[1])],args[int(s[2])],s[0]))
+            y+=1
+        x = y
+        for i in range(nVotes):
+            s = l[x+i].split(";")
+            votes(agents[int(s[1])],attacks[int(s[2])],int(s[3]))
+        w = AS(set(args),set(attacks))
+        sysw = WAS(w)
+        return sysw
+
 
 def main():
+    '''
     aman = Agent("aman", {"biology", "nutrition"})
     philippe = Agent("philippe", {"health", "psychology"})
     a = Argument({"nutrition", "health", "biology", "fitness"}, "a")
@@ -128,7 +156,10 @@ def main():
     votes(philippe, de, 1)
     w = AS({a, b, c, d, e}, {ab, ac, de})
     sysw = WAS(w)
-    ab.affichetout()
-    sysw.affichegraphe()
-
+    #ab.affichetout()
+    #sysw.affichegraphe()
+    '''
+    was = generate_was()
+    was.affichegraphe()
+    
 main()
