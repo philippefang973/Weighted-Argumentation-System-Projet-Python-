@@ -26,7 +26,7 @@ class VectorEval:
         self.attack = a
         self.weight = 0
         self.maxWeight = 0
-
+        
     def updateWeights(self, a, sign):
         i = a.getImpact(self.attack)
         if i != 0 : 
@@ -54,6 +54,23 @@ class AS:
         self.arguments = arguments
         self.attacks = attacks
 
+    def Neighbours(self,a) :
+        t = []
+        for att in self.attacks :
+            if att.a.name==a.name : t.append(att.b)
+        return t
+
+    def notAttacked(self) :
+        t = []
+        for a in self.arguments :
+            b = False
+            for att in self.attacks :
+                if att.b.name==a.name :
+                    b = True
+                    break
+            if not b : t.append(a)
+        return t
+                 
     def affichegraphe(self):
         G = nx.DiGraph()
         for arg in self.arguments:
@@ -61,13 +78,34 @@ class AS:
         for att in self.attacks:
             G.add_edge(att.a.name, att.b.name)
         pos = nx.spring_layout(G)
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=valueLabels, font_color='red')
+        nx.draw_networkx_edge_labels(G, pos, edge_labels={}, font_color='red')
         nx.draw(G, pos, edge_color='black', length = 100, width=1,size=20, linewidths=1,
                 node_size=300, node_color='pink', alpha=1,
                 labels={node: node for node in G.nodes()}
                 )
         plt.show()
 
+    def labels(self):
+        l = {x.name:"und" for x in self.arguments}
+        noAtt = self.notAttacked()
+        in_attacked = set()
+        while len(noAtt)>0 :
+            k = noAtt.pop()
+            l[k.name] = "in"
+            tmp = [k]
+            visited = set()
+            while len(tmp)>0 :
+                x = tmp.pop()
+                visited.add(x.name)
+                for n in self.Neighbours(x) :
+                    if l[x.name] == "in" :
+                        l[n.name] = "out"
+                        in_attacked.add(n.name)
+                    elif l[x.name] == "out" and n.name not in in_attacked and l[n.name]!="in": l[n.name] = "in"
+                    if n.name not in visited : tmp.append(n)
+        return l
+
+    
 class WAS:
     def __init__(self,sys,v):
         self.sys = sys
@@ -95,6 +133,15 @@ class WAS:
                 labels={node: node for node in G.nodes()}
                 )
         plt.show()
+
+    def counterpartAS(self):
+        args=self.sys.arguments
+        att=[v.attack for v in self.vectors if v.weight>0]
+        return AS(args,att)
+
+    def labels(self) :
+        c = self.counterpartAS()
+        return c.labels()
 
 
 def votes(vector,agent,sign):
@@ -134,10 +181,6 @@ def generate_was(n) :
 
 
 def main():
-    '''
-    was = generate_was(6)
-    was.affichegraphe()
-    '''
     PC1 = Agent("PC1",{"kr","cog"})
     PC2 = Agent("PC2",{"kr","comp"})
     PC3 = Agent("PC3",{"comp","ml"})
@@ -161,7 +204,11 @@ def main():
     votes(vda,PC2,1)
     vectors = [vba,vda,vcb]
     sysw = WAS(w,vectors)
-    sysw.affichegraphe()
-    
-    
+    #print(sysw.labels())
+    #sysw.counterpartAS().affichegraphe()
+
+    was = generate_was(5)
+    c = was.counterpartAS()
+    print(c.labels())
+    c.affichegraphe()
 main()
