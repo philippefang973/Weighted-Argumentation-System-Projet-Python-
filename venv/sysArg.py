@@ -23,12 +23,12 @@ class Argument:
         self.topics = topics
         self.name = name
         
-    def __str__(self) :
+    def __str__(self):
         return "Argument("+self.name+","+str(self.topics)+")"
 
 
 class VectorEval:
-    def __init__(self,a):
+    def __init__(self, a):
         self.attack = a
         self.weight = 0
         self.maxWeight = 0
@@ -38,7 +38,7 @@ class VectorEval:
     
     def updateWeights(self, a, sign):
         i = a.getImpact(self.attack)
-        if i != 0 : 
+        if i != 0:
             self.weight += i*sign
             self.maxWeight += len(self.attack.top)
 
@@ -67,21 +67,23 @@ class AS:
         self.arguments = arguments
         self.attacks = attacks
 
-    def Neighbours(self,a) :
+    def Neighbours(self, a):
         t = []
-        for att in self.attacks :
-            if att.a.name==a.name : t.append(att.b)
+        for att in self.attacks:
+            if att.a.name == a.name:
+                t.append(att.b)
         return t
 
-    def notAttacked(self) :
+    def notAttacked(self):
         t = []
         for a in self.arguments :
             b = False
-            for att in self.attacks :
-                if att.b.name==a.name :
+            for att in self.attacks:
+                if att.b.name == a.name:
                     b = True
                     break
-            if not b : t.append(a)
+            if not b:
+                t.append(a)
         return t
                  
     def affichegraphe(self):
@@ -102,30 +104,33 @@ class AS:
         l = {x.name:"und" for x in self.arguments}
         noAtt = self.notAttacked()
         in_attacked = set()
-        while len(noAtt)>0 :
+        while len(noAtt) > 0:
             k = noAtt.pop()
             l[k.name] = "in"
             tmp = [k]
             visited = set()
-            while len(tmp)>0 :
+            while len(tmp) > 0:
                 x = tmp.pop()
                 visited.add(x.name)
-                for n in self.Neighbours(x) :
-                    if l[x.name] == "in" :
+                for n in self.Neighbours(x):
+                    if l[x.name] == "in":
                         l[n.name] = "out"
                         in_attacked.add(n.name)
-                    elif l[x.name] == "out" and n.name not in in_attacked and l[n.name]!="in": l[n.name] = "in"
-                    if n.name not in visited : tmp.append(n)
+                    elif l[x.name] == "out" and n.name not in in_attacked and l[n.name] != "in":
+                        l[n.name] = "in"
+                    if n.name not in visited:
+                        tmp.append(n)
         return l
-    
+
+
 class WAS:
-    def __init__(self,sys,v):
+    def __init__(self, sys, v):
         self.sys = sys
         self.vectors = v
 
-    def getAttack(self,att) :
-        for v in self.vectors :
-            if v.attack.name == att.name :
+    def getAttack(self, att):
+        for v in self.vectors:
+            if v.attack.name == att.name:
                 return v
         return None
         
@@ -147,59 +152,60 @@ class WAS:
         plt.show()
 
     def counterpartAS(self):
-        args=self.sys.arguments
-        att=[v.attack for v in self.vectors if v.weight>0]
-        return AS(args,att)
+        args = self.sys.arguments
+        att = [v.attack for v in self.vectors if v.weight > 0]
+        return AS(args, att)
 
-    def labels(self) :
+    def labels(self):
         c = self.counterpartAS()
         return c.labels()
 
-    def attacks(self,lmbda,epsilon) :
+    def attacks(self, lmbda, epsilon):
         l = {}
-        for v in self.vectors :
-            w,mw,t = v.weight,v.maxWeight,len(v.attack.top)
-            if (w==0 and mw==0) or (float(mw)/float(t)>lmbda and float(abs(w))/float(mw)>epsilon) :
+        for v in self.vectors:
+            w, mw, t = v.weight, v.maxWeight, len(v.attack.top)
+            if (w == 0 and mw == 0) or (float(mw)/float(t) > lmbda and float(abs(w))/float(mw) > epsilon):
                 l["("+v.attack.a.name+","+v.attack.b.name+")"] = "bd"
-            elif (w>0 and w-t>0) or (w<=0 and abs(w)-t>=0) :
+            elif (w > 0 and w-t > 0) or (w <= 0 and abs(w)-t >= 0):
                 l["("+v.attack.a.name+","+v.attack.b.name+")"] = "str"
-            else :
+            else:
                 l["("+v.attack.a.name+","+v.attack.b.name+")"] = "wk"
         return l
 
 
-def votes(vector,agent,sign):
-    vector.updateWeights(agent,sign)
+def votes(vector, agent, sign):
+    vector.updateWeights(agent, sign)
 
-def was_from_file(f) :
-     with open(f,"r") as fd :
+
+def was_from_file(f):
+     with open(f, "r") as fd:
         l = fd.readlines()
         s = l[0].split(";")
-        nAgent,nArgument,nAttack,nVotes = int(s[0]),int(s[1]),int(s[2]),int(s[3])
-        agents,args,attacks,vectors={},{},{},{}
-        x,y = 1,1
+        nAgent, nArgument, nAttack, nVotes = int(s[0]), int(s[1]), int(s[2]), int(s[3])
+        agents, args, attacks, vectors = {}, {}, {}, {}
+        x, y = 1, 1
         for i in range(nAgent):
             s = l[x+i].split(";")
-            agents[s[0]] = Agent(s[0],set(s[1:-1]))
-            y+=1
+            agents[s[0]] = Agent(s[0], set(s[1:-1]))
+            y += 1
         x = y
         for i in range(nArgument):
             s = l[x+i].split(";")
-            args[s[0]] = Argument(set(s[1:-1]),s[0])
-            y+=1
+            args[s[0]] = Argument(set(s[1:-1]), s[0])
+            y += 1
         x = y
         for i in range(nAttack):
             s = l[x+i].split(";")
-            a = Attack(args[s[1]],args[s[2]],s[0])
+            a = Attack(args[s[1]], args[s[2]], s[0])
             attacks[s[0]] = a 
             vectors[s[0]] = VectorEval(a)
-            y+=1
+            y += 1
         x = y
         for i in range(nVotes):
             s = l[x+i].split(";")
-            votes(vectors[s[2]],agents[s[1]],int(s[3]))
-        w = AS(set(args.values()),set(attacks.values()))
-        sysw = WAS(w,vectors.values())
+            votes(vectors[s[2]], agents[s[1]], int(s[3]))
+        w = AS(set(args.values()), set(attacks.values()))
+        sysw = WAS(w, vectors.values())
         return sysw
 
 
@@ -208,7 +214,7 @@ def main():
     print(sysw.labels())
     #l,e = rand.randint(0,3),rand.uniform(0,1)
     #print(l,e)
-    print(sysw.attacks(4,0.5))
+    print(sysw.attacks(4, 0.5))
     sysw.affichegraphe()
     #sysw.counterpartAS().affichegraphe()
     '''
