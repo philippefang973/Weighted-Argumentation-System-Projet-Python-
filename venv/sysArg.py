@@ -129,7 +129,6 @@ class WAS:
     def __init__(self, sys, v):
         self.sys = sys
         self.vectors = v
-        self.name = "hi"
 
     def getVector(self, att):
         for v in self.vectors:
@@ -176,19 +175,18 @@ class WAS:
         return l
 
     def alternative_was(self,lmbda, epsilon):
-        s = self.attacks(lmbda,epsilon)["wk"]
-        n = len(s)
+        unstable = self.attacks(lmbda,epsilon)["wk"]
+        n = len(unstable)
         subs = []
         while n > 0:
-            subs += list((map(set, itertools.combinations(s, n))))
+            subs += list((map(set, itertools.combinations(unstable, n))))
             n -= 1
         alts = [self]
         for sub in subs:
             new_was = deepcopy(self)
-            new_was.name = "yo"
             for s in sub:
                 v = new_was.getVector(s)
-                if v.weight < 0:
+                if v.weight!=0 and s in unstable:
                     v.weight = - v.weight
                 elif v.weight == 0:
                     v.weight = 1
@@ -255,7 +253,6 @@ def main():
     print(sysw.attacks(4, 0.5))
     print(sysw.alternative_was(4,0.5))
     print(sysw.persistence(4,0.5))
-    sysw.alternative_was(4,0.5)[1].counterpartAS().affichegraphe()
     #sysw.counterpartAS().affichegraphe()
     '''
     gen.generate_file("randomized.txt",5)
