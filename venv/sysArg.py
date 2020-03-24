@@ -2,6 +2,8 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import generate as gen
 import random as rand
+import itertools
+from copy import deepcopy
 
 class Agent:
     def __init__(self, name, expertises):
@@ -126,6 +128,7 @@ class AS:
 class WAS:
     def __init__(self, sys, v):
         self.sys = sys
+        self.weakAttacks = {}
         self.vectors = v
 
     def getAttack(self, att):
@@ -169,8 +172,43 @@ class WAS:
             elif (w > 0 and w-t > 0) or (w <= 0 and abs(w)-t >= 0):
                 l["("+v.attack.a.name+","+v.attack.b.name+")"] = "str"
             else:
+                self.weakAttacks.update({v.attack : w})
                 l["("+v.attack.a.name+","+v.attack.b.name+")"] = "wk"
         return l
+
+
+def find_weak_subsets(sys):
+    s = sys.weakAttacks.keys()
+    n = len(s)
+    subsets = []
+    while n > 0:
+        subsets += list((map(set, itertools.combinations(s, n))))
+        n -= 1
+    return subsets
+
+
+def get_alternative_was(was):
+    subs = find_weak_subsets(was)
+    alts = [was]
+    for sub in subs:
+        new_was_sys = deepcopy(was.sys)
+        newV={}
+        for key in was.vectors:
+            newV[key]= was.vectors[key]
+        new_was = WAS(new_was_sys, newV)
+        for s in sub:
+           v = new_was.getAttack(s)
+           if v.weight < 0:
+               v.weight = - v.weight
+           elif v.weight == 0:
+               v.weight = 1
+
+        alts += [new_was]
+    alts[0].affichegraphe()
+    return alts
+
+
+
 
 
 def votes(vector, agent, sign):
@@ -215,12 +253,18 @@ def main():
     #l,e = rand.randint(0,3),rand.uniform(0,1)
     #print(l,e)
     print(sysw.attacks(4, 0.5))
-    sysw.affichegraphe()
+    print(sysw.weakAttacks)
+
+
+
+    print(find_weak_subsets(sysw))
+    get_alternative_was(sysw)
     #sysw.counterpartAS().affichegraphe()
     '''
     gen.generate_file("randomized.txt",5)
-    was = was_from_file("randomized.txt")
+    was = was_from_file("example.txt")
     c = was.counterpartAS()
+    
     print(c.labels())
     c.affichegraphe()
     '''
