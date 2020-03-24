@@ -1,4 +1,10 @@
-3;4;3;7;
+6;3;4;3;7;
+Exp1;comp;ml;
+Exp2;comp;kr;
+Exp3;comp;cog;
+Exp4;ml;kr;
+Exp5;ml;cog;
+Exp6;cog;kr;
 PC1;kr;cog;
 PC2;kr;comp;
 PC3;comp;ml;

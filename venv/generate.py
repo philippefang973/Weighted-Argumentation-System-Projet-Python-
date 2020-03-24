@@ -9,11 +9,13 @@ def random_partition(l) :
         s = s-tmp
     return res
 
-def generate_file(f,nAg) :
+def generate_file(f,nAg,nEx) :
     #Data generation
+    nExpert = nEx
     nAgent = nAg
     top = range(rand.randint(nAgent,nAgent*2))
     agents = [rand.sample(top,rand.randint(1,5)) for i in range(nAgent)]
+    experts = [rand.sample(top,rand.randint(1,5)) for i in range(nExpert)]
     arguments = [random_partition(l) for l in agents]
     ind = []
     nArgument = 0
@@ -35,7 +37,12 @@ def generate_file(f,nAg) :
             
     #File writing
     with open(f,"w+") as fd :
-        fd.write(str(nAgent)+";"+str(nArgument)+";"+str(len(attacks))+";"+str(len(votes))+";\n")
+        fd.write(str(nExpert)+";"+str(nAgent)+";"+str(nArgument)+";"+str(len(attacks))+";"+str(len(votes))+";\n")
+        for i in range(nExpert) :
+            fd.write("expert"+str(i)+";")
+            for j in agents[i] :
+                fd.write("topic"+str(j)+";")
+            fd.write("\n")
         for i in range(nAgent) :
             fd.write("agent"+str(i)+";")
             for j in agents[i] :

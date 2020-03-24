@@ -239,9 +239,14 @@ def was_from_file(f):
      with open(f, "r") as fd:
         l = fd.readlines()
         s = l[0].split(";")
-        nAgent, nArgument, nAttack, nVotes = int(s[0]), int(s[1]), int(s[2]), int(s[3])
-        agents, args, attacks, vectors = {}, {}, {}, {}
+        nExpert, nAgent, nArgument, nAttack, nVotes = int(s[0]), int(s[1]), int(s[2]), int(s[3]), int(s[4])
+        experts, agents, args, attacks, vectors = {}, {}, {}, {}, {}
         x, y = 1, 1
+        for i in range(nExpert):
+            s = l[x+i].split(";")
+            experts[s[0]] = Agent(s[0], set(s[1:-1]))
+            y += 1
+        x = y
         for i in range(nAgent):
             s = l[x+i].split(";")
             agents[s[0]] = Agent(s[0], set(s[1:-1]))
@@ -264,21 +269,28 @@ def was_from_file(f):
             votes(vectors[s[2]], agents[s[1]], int(s[3]))
         w = AS(set(args.values()), set(attacks.values()))
         sysw = WAS(w, list(vectors.values()))
-        return sysw
+        return experts,agents,sysw
 
 
 def main():
-    sysw = was_from_file("example.txt")
+    exp,ag,sysw = was_from_file("example.txt")
+    print("Experts:")
+    print(exp)
+    print("\nAgents:")
+    print(ag)
+    print("\nLabels:")
     print(sysw.labels())
     #l,e = rand.randint(0,3),rand.uniform(0,1)
     #print(l,e)
+    print("\nAttack Types:")
     print(sysw.attacks(4, 0.5))
-    print(sysw.alternative_was(4,0.5))
+    #print(sysw.alternative_was(4,0.5))
+    print("\nPersistent Arguments:")
     print(sysw.persistence(4,0.5))
-    #sysw.counterpartAS().affichegraphe()
+    sysw.affichegraphe()
     '''
-    gen.generate_file("randomized.txt",5)
-    was = was_from_file("example.txt")
+    gen.generate_file("randomized.txt",5,3)
+    exp, ag, was = was_from_file("example.txt")
     c = was.counterpartAS()
     
     print(c.labels())
