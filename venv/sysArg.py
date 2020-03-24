@@ -80,7 +80,7 @@ class AS:
         self.attacks = attacks
 
     def __str__(self) :
-        return "AS("+str(self.arguments)+",\n\t"+str(self.attacks)+")"
+        return "AS("+str(self.arguments)+","+str(self.attacks)+")"
 
     def __repr__(self) :
         return str(self)
@@ -147,7 +147,7 @@ class WAS:
         self.vectors = v
 
     def __str__(self) :
-        return "WAS("+str(self.sys)+",\n\t"+str(self.vectors)+")"
+        return "WAS("+str(self.sys)+","+str(self.vectors)+")"
         
     def __repr__(self) :
         return str(self)
