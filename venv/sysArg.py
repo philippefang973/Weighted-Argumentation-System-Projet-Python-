@@ -12,6 +12,9 @@ class Agent:
 
     def __str__(self) :
         return "Agent("+self.name+","+str(self.expertises)+")"
+    
+    def __repr__(self) :
+        return str(self)
 
     def getImpact(self, att):
         interProm = self.expertises.intersection(att.prom)
@@ -28,7 +31,9 @@ class Argument:
     def __str__(self):
         return "Argument("+self.name+","+str(self.topics)+")"
 
-
+    def __repr__(self) :
+        return str(self)
+    
 class VectorEval:
     def __init__(self, a):
         self.attack = a
@@ -38,6 +43,9 @@ class VectorEval:
     def __str__(self) :
         return "VectoEval("+str(self.attack)+","+str(self.weight)+","+str(self.maxWeight)+")"
     
+    def __repr__(self) :
+        return str(self)
+
     def updateWeights(self, a, sign):
         i = a.getImpact(self.attack)
         if i != 0:
@@ -55,7 +63,9 @@ class Attack:
         
     def __str__(self) :
         return "Attack("+str(self.a)+","+str(self.b)+")"
-        
+
+    def __repr__(self) :
+        return str(self)
 
     def affichetout(self):
         print("Prom are: ")
@@ -69,6 +79,12 @@ class AS:
         self.arguments = arguments
         self.attacks = attacks
 
+    def __str__(self) :
+        return "AS("+str(self.arguments)+",\n\t"+str(self.attacks)+")"
+
+    def __repr__(self) :
+        return str(self)
+        
     def Neighbours(self, a):
         t = []
         for att in self.attacks:
@@ -130,6 +146,12 @@ class WAS:
         self.sys = sys
         self.vectors = v
 
+    def __str__(self) :
+        return "WAS("+str(self.sys)+",\n\t"+str(self.vectors)+")"
+        
+    def __repr__(self) :
+        return str(self)
+    
     def getVector(self, att):
         for v in self.vectors:
             if v.attack.name == att.name:
