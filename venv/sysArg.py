@@ -128,10 +128,10 @@ class AS:
 class WAS:
     def __init__(self, sys, v):
         self.sys = sys
-        self.weakAttacks = {}
         self.vectors = v
+        self.name = "hi"
 
-    def getAttack(self, att):
+    def getVector(self, att):
         for v in self.vectors:
             if v.attack.name == att.name:
                 return v
@@ -144,7 +144,7 @@ class WAS:
             G.add_node(arg.name)
         for att in self.sys.attacks:
             G.add_edge(att.a.name, att.b.name)
-            tmp = self.getAttack(att)
+            tmp = self.getVector(att)
             valueLabels.update({(att.a.name, att.b.name): '<' + str(tmp.weight) + "," + str(tmp.maxWeight) + '>'})
         pos = nx.spring_layout(G)
         nx.draw_networkx_edge_labels(G, pos, edge_labels=valueLabels, font_color='red')
@@ -164,52 +164,52 @@ class WAS:
         return c.labels()
 
     def attacks(self, lmbda, epsilon):
-        l = {}
+        l = {"bd":[],"str":[],"wk":[]}
         for v in self.vectors:
             w, mw, t = v.weight, v.maxWeight, len(v.attack.top)
             if (w == 0 and mw == 0) or (float(mw)/float(t) > lmbda and float(abs(w))/float(mw) > epsilon):
-                l["("+v.attack.a.name+","+v.attack.b.name+")"] = "bd"
+                l["bd"].append(v.attack)
             elif (w > 0 and w-t > 0) or (w <= 0 and abs(w)-t >= 0):
-                l["("+v.attack.a.name+","+v.attack.b.name+")"] = "str"
+                l["str"].append(v.attack)
             else:
-                self.weakAttacks.update({v.attack : w})
-                l["("+v.attack.a.name+","+v.attack.b.name+")"] = "wk"
+                l["wk"].append(v.attack)
         return l
 
+    def alternative_was(self,lmbda, epsilon):
+        s = self.attacks(lmbda,epsilon)["wk"]
+        n = len(s)
+        subs = []
+        while n > 0:
+            subs += list((map(set, itertools.combinations(s, n))))
+            n -= 1
+        alts = [self]
+        for sub in subs:
+            new_was = deepcopy(self)
+            new_was.name = "yo"
+            for s in sub:
+                v = new_was.getVector(s)
+                if v.weight < 0:
+                    v.weight = - v.weight
+                elif v.weight == 0:
+                    v.weight = 1
+            alts += [new_was]
+        return alts
 
-def find_weak_subsets(sys):
-    s = sys.weakAttacks.keys()
-    n = len(s)
-    subsets = []
-    while n > 0:
-        subsets += list((map(set, itertools.combinations(s, n))))
-        n -= 1
-    return subsets
-
-
-def get_alternative_was(was):
-    subs = find_weak_subsets(was)
-    alts = [was]
-    for sub in subs:
-        new_was_sys = deepcopy(was.sys)
-        newV={}
-        for key in was.vectors:
-            newV[key]= was.vectors[key]
-        new_was = WAS(new_was_sys, newV)
-        for s in sub:
-           v = new_was.getAttack(s)
-           if v.weight < 0:
-               v.weight = - v.weight
-           elif v.weight == 0:
-               v.weight = 1
-
-        alts += [new_was]
-    alts[0].affichegraphe()
-    return alts
-
-
-
-
+    def persistence(self,lmbda,epsilon) :
+        alts = self.alternative_was(lmbda,epsilon)
+        l = {"pers":[],"not_pers":[]}
+        labels = self.labels()
+        ltmp = [a.labels() for a in alts]
+        for arg in labels :
+            b = True
+            for k in ltmp :
+                if k[arg]!=labels[arg] :
+                    l["not_pers"].append(arg)
+                    b = False
+                    break
+            if b : l["pers"].append(arg)
+        return l
+             
 
 def votes(vector, agent, sign):
     vector.updateWeights(agent, sign)
@@ -253,12 +253,9 @@ def main():
     #l,e = rand.randint(0,3),rand.uniform(0,1)
     #print(l,e)
     print(sysw.attacks(4, 0.5))
-    print(sysw.weakAttacks)
-
-
-
-    print(find_weak_subsets(sysw))
-    get_alternative_was(sysw)
+    print(sysw.alternative_was(4,0.5))
+    print(sysw.persistence(4,0.5))
+    sysw.alternative_was(4,0.5)[1].counterpartAS().affichegraphe()
     #sysw.counterpartAS().affichegraphe()
     '''
     gen.generate_file("randomized.txt",5)
