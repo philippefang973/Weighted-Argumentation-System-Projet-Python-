@@ -179,7 +179,7 @@ class WAS:
         n = len(unstable)
         subs = []
         while n > 0:
-            subs += list((map(set, itertools.combinations(unstable, n))))
+            subs += list(list(map(set, itertools.combinations(unstable, n))))
             n -= 1
         alts = [self]
         for sub in subs:
@@ -241,7 +241,7 @@ def was_from_file(f):
             s = l[x+i].split(";")
             votes(vectors[s[2]], agents[s[1]], int(s[3]))
         w = AS(set(args.values()), set(attacks.values()))
-        sysw = WAS(w, vectors.values())
+        sysw = WAS(w, list(vectors.values()))
         return sysw
 
 
