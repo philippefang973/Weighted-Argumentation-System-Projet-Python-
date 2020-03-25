@@ -47,11 +47,10 @@ class VectorEval:
         return str(self)
 
     def updateWeights(self, a, sign):
-        if sign != 0:
-            i = a.getImpact(self.attack)
-            if i != 0:
-                self.weight += i*sign
-                self.maxWeight += len(self.attack.top)
+        i = a.getImpact(self.attack)
+        if i != 0:
+            self.weight += i*sign
+            self.maxWeight += len(self.attack.top)
 
 class Attack:
     def __init__(self, a, b, name):
@@ -249,7 +248,7 @@ class WAS:
         # get all possible combinations of votes, sous forme de liste de dictionnaires. Exemple:
         # [{'ab': 1, 'bc': 1, 'ac': 1}, {'ab': 1, 'bc': 1, 'ac': -1}, .... ]
         possible_votes = []
-        values = ([[-1, 0, 1]] * len(review_attacks))
+        values = ([[-1, 1]] * len(review_attacks))
         for row in itertools.product(*values):
             possible_votes.append(dict(zip(review_attacks, row)))
         # Iterate all possible votes list, generate a new WAS for each set of votes,
@@ -259,6 +258,13 @@ class WAS:
             all_possible_was.append(poss_was)
         return all_possible_was
 
+    def single_attacks_stability(self,lmbda,epsilon,possible_was) :
+        attacks = self.attacks(lmbda,epsilon)
+        new_attacks = possible_was.attacks(lmbda,epsilon)
+        reinforced = [i for i in attacks["wk"] if i.name in list(map(lambda a:a.name,new_attacks["str"]))]
+        weakened = [i for i in attacks["str"] if i.name in list(map(lambda a:a.name,new_attacks["wk"]))]
+        return {"reinforced":reinforced,"weakened":weakened}
+        
 
 def votes(vector, agent, sign):
     vector.updateWeights(agent, sign)
@@ -317,7 +323,9 @@ def main():
     print("\nPersistent Arguments:")
     print(sysw.persistence(4,0.5))
     sysw.affichegraphe()
-    sysw.get_all_possible_was_by_expert(4, 0.5, exp['Exp1'])
+    possibles = sysw.get_all_possible_was_by_expert(4, 0.5, exp['Exp1'])
+    print(len(possibles))
+    print(sysw.single_attacks_stability(4,0.5,possibles[1]))
     '''
     gen.generate_file("randomized.txt",5,3)
     exp, ag, was = was_from_file("example.txt")
