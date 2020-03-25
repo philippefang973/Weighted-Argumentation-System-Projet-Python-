@@ -47,10 +47,11 @@ class VectorEval:
         return str(self)
 
     def updateWeights(self, a, sign):
-        i = a.getImpact(self.attack)
-        if i != 0:
-            self.weight += i*sign
-            self.maxWeight += len(self.attack.top)
+        if sign != 0:
+            i = a.getImpact(self.attack)
+            if i != 0:
+                self.weight += i*sign
+                self.maxWeight += len(self.attack.top)
 
 class Attack:
     def __init__(self, a, b, name):
@@ -208,28 +209,56 @@ class WAS:
             new_was = deepcopy(self)
             for s in sub:
                 v = new_was.getVector(s)
-                if v.weight!=0 and s in unstable:
+                if v.weight != 0 and s in unstable:
                     v.weight = - v.weight
                 elif v.weight == 0:
                     v.weight = 1
             alts += [new_was]
         return alts
 
-    def persistence(self,lmbda,epsilon) :
+    def persistence(self, lmbda, epsilon):
         alts = self.alternative_was(lmbda,epsilon)
-        l = {"pers":[],"not_pers":[]}
+        l = {"pers":[], "not_pers":[]}
         labels = self.labels()
         ltmp = [a.labels() for a in alts]
-        for arg in labels :
+        for arg in labels:
             b = True
-            for k in ltmp :
-                if k[arg]!=labels[arg] :
+            for k in ltmp:
+                if k[arg] != labels[arg]:
                     l["not_pers"].append(arg)
                     b = False
                     break
-            if b : l["pers"].append(arg)
+            if b:
+                l["pers"].append(arg)
         return l
-             
+
+    def expert_vote(self, votes_expert, agent):
+        # generate a possible was from one set of votes by an expert
+        possible_was = deepcopy(self)
+        for key,value in votes_expert.items():
+            sign = value
+            vector = self.getVector(key)
+            votes(vector, agent, sign)
+        return possible_was
+
+    def get_all_possible_was_by_expert(self, lmbda, epsilon, expert):
+        all_possible_was = []
+        # get all weak and strong attacks that will be reviewed by the expert
+        attacks = self.attacks(lmbda, epsilon)
+        review_attacks = attacks["wk"] + attacks["str"]
+        # get all possible combinations of votes, sous forme de liste de dictionnaires. Exemple:
+        # [{'ab': 1, 'bc': 1, 'ac': 1}, {'ab': 1, 'bc': 1, 'ac': -1}, .... ]
+        possible_votes = []
+        values = ([[-1, 0, 1]] * len(review_attacks))
+        for row in itertools.product(*values):
+            possible_votes.append(dict(zip(review_attacks, row)))
+        # Iterate all possible votes list, generate a new WAS for each set of votes,
+        # and add it to the list of possible WAS
+        for vote in possible_votes:
+            poss_was = self.expert_vote(vote, expert)
+            all_possible_was.append(poss_was)
+        return all_possible_was
+
 
 def votes(vector, agent, sign):
     vector.updateWeights(agent, sign)
@@ -273,7 +302,7 @@ def was_from_file(f):
 
 
 def main():
-    exp,ag,sysw = was_from_file("example.txt")
+    exp, ag, sysw = was_from_file("example.txt")
     print("Experts:")
     print(exp)
     print("\nAgents:")
@@ -288,6 +317,7 @@ def main():
     print("\nPersistent Arguments:")
     print(sysw.persistence(4,0.5))
     sysw.affichegraphe()
+    sysw.get_all_possible_was_by_expert(4, 0.5, exp['Exp1'])
     '''
     gen.generate_file("randomized.txt",5,3)
     exp, ag, was = was_from_file("example.txt")
