@@ -258,9 +258,9 @@ class WAS:
             all_possible_was.append(poss_was)
         return all_possible_was
 
-    def single_attacks_stability(self,lmbda,epsilon,possible_was) :
-        attacks = self.attacks(lmbda,epsilon)
-        new_attacks = possible_was.attacks(lmbda,epsilon)
+    def single_attacks_stability(self, lmbda, epsilon, possible_was):
+        attacks = self.attacks(lmbda, epsilon)
+        new_attacks = possible_was.attacks(lmbda, epsilon)
         reinforced = [i for i in attacks["wk"] if i.name in list(map(lambda a:a.name,new_attacks["str"]))]
         weakened = [i for i in attacks["str"] if i.name in list(map(lambda a:a.name,new_attacks["wk"]))]
         return {"reinforced":reinforced,"weakened":weakened}
