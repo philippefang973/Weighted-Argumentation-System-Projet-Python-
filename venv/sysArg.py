@@ -236,12 +236,12 @@ class WAS:
         possible_was = deepcopy(self)
         for key,value in votes_expert.items():
             sign = value
-            vector = self.getVector(key)
+            vector = possible_was.getVector(key)
             votes(vector, agent, sign)
         return possible_was
 
     def get_all_possible_was_by_expert(self, lmbda, epsilon, expert):
-        all_possible_was = []
+        all_possible_was = set()
         # get all weak and strong attacks that will be reviewed by the expert
         attacks = self.attacks(lmbda, epsilon)
         review_attacks = attacks["wk"] + attacks["str"]
@@ -255,8 +255,8 @@ class WAS:
         # and add it to the list of possible WAS
         for vote in possible_votes:
             poss_was = self.expert_vote(vote, expert)
-            all_possible_was.append(poss_was)
-        return all_possible_was
+            all_possible_was.add(poss_was)
+        return list(all_possible_was)
 
     def single_attacks_stability(self, lmbda, epsilon, possible_was):
         attacks = self.attacks(lmbda, epsilon)
@@ -326,9 +326,6 @@ class WAS:
         res["persist_dom"] = res["opti_persist_dom"]&res["pess_persist_dom"]
         return res
 
- 
-
-
 def votes(vector, agent, sign):
     vector.updateWeights(agent, sign)
 
@@ -385,14 +382,19 @@ def main():
     #print(sysw.alternative_was(4,0.5))
     print("\nPersistent Arguments:")
     print(sysw.persistence(4,0.5))
-    sysw.affichegraphe()
-    possibles = sysw.get_all_possible_was_by_expert(4, 0.5, exp['Exp1'])
-    print(len(possibles))
+    #sysw.affichegraphe()
+    print("\n")
+    #possibles = sysw.get_all_possible_was_by_expert(4, 0.5, exp['Exp1'])
     #print(sysw.single_attacks_stability(4,0.5,possibles[1]))
     #print(sysw.single_labels_persistence(4,0.5,possibles[1]))
     #print(sysw.max_stability_possible_was(4,0.5,exp['Exp1']))
     #print(sysw.max_persistence_possible_was(4,0.5,exp['Exp1']))
-    print(sysw.reinforce_dominate(4,0.5,exp['Exp1'],exp['Exp6']))
+    for x in list(exp) :
+        print("\n"+x)
+        for y in list(exp) :
+            if x!=y:
+                print("> "+str(sysw.reinforce_dominate(4,0.5,exp[x],exp[y])))
+    
     '''
     gen.generate_file("randomized.txt",5,3)
     exp, ag, was = was_from_file("example.txt")
