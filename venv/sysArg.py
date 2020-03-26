@@ -284,12 +284,12 @@ class WAS:
         max_turned_not_pers = max(p,key=lambda was: len(self.single_labels_persistence(lmbda,epsilon,was)["turned_not_pers"]))
         return max_turned_pers,max_turned_not_pers
 
-    def reinforce_dominate(self, i, j, lmbda, epsilon):
+    def reinforce_dominate(self, lmbda, epsilon, i, j):
         max_stable_i, max_unstable_i = self.max_stability_possible_was(lmbda, epsilon, i)
         max_stable_j, max_unstable_j = self.max_stability_possible_was(lmbda, epsilon, j)
 
-        stbi = self.single_attacks_stability(max_stable_i)
-        stbj = self.single_attacks_stability(max_stable_j)
+        stbi = self.single_attacks_stability(lmbda, epsilon,max_stable_i)
+        stbj = self.single_attacks_stability(lmbda, epsilon,max_stable_j)
 
         stbi_reinforced = set(stbi["reinforced"])
         stbj_reinforced = set(stbj["reinforced"])
@@ -297,40 +297,36 @@ class WAS:
         stbi_weakened = set(stbi["weakened"])
         stbj_weakened = set(stbj["weakened"])
 
-        if opti_dominate(stbi_reinforced, stbj_reinforced) and pess_dominate(stbi_weakened, stbj_weakened):
-            return i
-        elif opti_dominate(stbj_reinforced, stbi_reinforced) and pess_dominate(stbj_weakened, stbi_weakened):
-            return j
-        else:
-            return None
+        res = {"opti_reinforce_dom":set(),"pess_reinforce_dom":set(),"reinforce_dom":set()}
+        if stbj_reinforced.issubset(stbi_reinforced) : res["opti_reinforce_dom"].add(i)
+        if stbi_weakened.issubset(stbj_weakened) : res["pess_reinforce_dom"].add(i)
+        if stbi_reinforced.issubset(stbj_reinforced) : res["opti_reinforce_dom"].add(j)
+        if stbj_weakened.issubset(stbi_weakened) : res["pess_reinforce_dom"].add(j)
+        res["reinforce_dom"] = res["opti_reinforce_dom"]&res["pess_reinforce_dom"]
+        return res
 
-    def presist_dominate(self, i, j, lmbda, epsilon):
+    def persist_dominate(self, lmbda, epsilon,i, j):
         max_turned_pers_i, max_turned_not_pers_i = self.max_persistence_possible_was(lmbda, epsilon, i)
         max_turned_pers_j, max_turned_not_pers_j = self.max_persistence_possible_was(lmbda, epsilon, j)
 
-        slpi = self.single_attacks_stability(max_turned_pers_i)
-        slpj = self.single_attacks_stability(max_turned_pers_j)
+        stpi = self.single_attacks_stability(lmbda, epsilon,max_turned_pers_i)
+        stpj = self.single_attacks_stability(lmbda, epsilon,max_turned_pers_j)
 
-        slpi_pers = set(slpi["turned_pers"])
-        slpj_pers = set(slpj["turned_pers"])
+        stpi_pers = set(stpi["turned_pers"])
+        stpj_pers = set(stpj["turned_pers"])
 
-        slpi_not_pers = set(slpi["turned_not_pers"])
-        slpj_not_pers = set(slpj["turned_not_pers"])
+        stpi_not_pers = set(stpi["turned_not_pers"])
+        stpj_not_pers = set(stpj["turned_not_pers"])
 
-        if opti_dominate(slpi_pers, slpj_pers) and pess_dominate(slpi_not_pers, slpj_not_pers):
-            return i
-        elif opti_dominate(slpj_pers, slpi_pers) and pess_dominate(slpj_not_pers, slpi_not_pers):
-            return j
-        else:
-            return None
+        res = {"opti_persist_dom":set(),"pess_persist_dom":set(),"persist_dom":set()}
+        if stbj_pers.issubset(stbi_pers) : res["opti_persist_dom"].add(i)
+        if stbi_not_pers.issubset(stbj_not_pers) : res["pess_persist_dom"].add(i)
+        if stbi_pers.issubset(stbj_pers) : res["opti_persist_dom"].add(j)
+        if stbj_not_pers.issubset(stbi_not_pers) : res["pess_persist_dom"].add(j)
+        res["persist_dom"] = res["opti_persist_dom"]&res["pess_persist_dom"]
+        return res
 
-
-def opti_dominate(i, j):
-    return j.issubset(i)
-
-
-def pess_dominate(i,j):
-    return i.issubset(j)
+ 
 
 
 def votes(vector, agent, sign):
@@ -394,8 +390,9 @@ def main():
     print(len(possibles))
     #print(sysw.single_attacks_stability(4,0.5,possibles[1]))
     #print(sysw.single_labels_persistence(4,0.5,possibles[1]))
-    print(sysw.max_stability_possible_was(4,0.5,exp['Exp1']))
-    print(sysw.max_persistence_possible_was(4,0.5,exp['Exp1']))
+    #print(sysw.max_stability_possible_was(4,0.5,exp['Exp1']))
+    #print(sysw.max_persistence_possible_was(4,0.5,exp['Exp1']))
+    print(sysw.reinforce_dominate(4,0.5,exp['Exp1'],exp['Exp6']))
     '''
     gen.generate_file("randomized.txt",5,3)
     exp, ag, was = was_from_file("example.txt")
