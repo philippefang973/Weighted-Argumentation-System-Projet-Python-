@@ -283,7 +283,55 @@ class WAS:
         max_turned_pers = max(p,key=lambda was: len(self.single_labels_persistence(lmbda,epsilon,was)["turned_pers"]))
         max_turned_not_pers = max(p,key=lambda was: len(self.single_labels_persistence(lmbda,epsilon,was)["turned_not_pers"]))
         return max_turned_pers,max_turned_not_pers
-        
+
+    def reinforce_dominate(self, i, j, lmbda, epsilon):
+        max_stable_i, max_unstable_i = self.max_stability_possible_was(lmbda, epsilon, i)
+        max_stable_j, max_unstable_j = self.max_stability_possible_was(lmbda, epsilon, j)
+
+        stbi = self.single_attacks_stability(max_stable_i)
+        stbj = self.single_attacks_stability(max_stable_j)
+
+        stbi_reinforced = set(stbi["reinforced"])
+        stbj_reinforced = set(stbj["reinforced"])
+
+        stbi_weakened = set(stbi["weakened"])
+        stbj_weakened = set(stbj["weakened"])
+
+        if opti_dominate(stbi_reinforced, stbj_reinforced) and pess_dominate(stbi_weakened, stbj_weakened):
+            return i
+        elif opti_dominate(stbj_reinforced, stbi_reinforced) and pess_dominate(stbj_weakened, stbi_weakened):
+            return j
+        else:
+            return None
+
+    def presist_dominate(self, i, j, lmbda, epsilon):
+        max_turned_pers_i, max_turned_not_pers_i = self.max_persistence_possible_was(lmbda, epsilon, i)
+        max_turned_pers_j, max_turned_not_pers_j = self.max_persistence_possible_was(lmbda, epsilon, j)
+
+        slpi = self.single_attacks_stability(max_turned_pers_i)
+        slpj = self.single_attacks_stability(max_turned_pers_j)
+
+        slpi_pers = set(slpi["turned_pers"])
+        slpj_pers = set(slpj["turned_pers"])
+
+        slpi_not_pers = set(slpi["turned_not_pers"])
+        slpj_not_pers = set(slpj["turned_not_pers"])
+
+        if opti_dominate(slpi_pers, slpj_pers) and pess_dominate(slpi_not_pers, slpj_not_pers):
+            return i
+        elif opti_dominate(slpj_pers, slpi_pers) and pess_dominate(slpj_not_pers, slpi_not_pers):
+            return j
+        else:
+            return None
+
+
+def opti_dominate(i, j):
+    return j.issubset(i)
+
+
+def pess_dominate(i,j):
+    return i.issubset(j)
+
 
 def votes(vector, agent, sign):
     vector.updateWeights(agent, sign)
