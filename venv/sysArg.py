@@ -220,7 +220,7 @@ class WAS:
         l = {"pers":[], "not_pers":[]}
         labels = self.labels()
         ltmp = [a.labels() for a in alts]
-        for arg in labels:
+        for arg in labels:    
             b = True
             for k in ltmp:
                 if k[arg] != labels[arg]:
@@ -264,6 +264,25 @@ class WAS:
         reinforced = [i for i in attacks["wk"] if i.name in list(map(lambda a:a.name,new_attacks["str"]))]
         weakened = [i for i in attacks["str"] if i.name in list(map(lambda a:a.name,new_attacks["wk"]))]
         return {"reinforced":reinforced,"weakened":weakened}
+
+    def max_stability_possible_was(self,lmbda,epsilon,expert) :
+        p = self.get_all_possible_was_by_expert(lmbda,epsilon,expert)
+        max_stable = max(p,key=lambda was: len(self.single_attacks_stability(lmbda,epsilon,was)["reinforced"]))
+        max_unstable = max(p,key=lambda was: len(self.single_attacks_stability(lmbda,epsilon,was)["weakened"]))
+        return max_stable,max_unstable
+        
+    def single_labels_persistence(self,lmbda,epsilon,possible_was) :
+        pers = self.persistence(lmbda,epsilon)
+        new_pers = possible_was.persistence(lmbda,epsilon)
+        turned_pers = [i for i in pers["not_pers"] if i in new_pers["pers"]]
+        turned_not_pers = [i for i in pers["pers"] if i in new_pers["not_pers"]]
+        return {"turned_pers":turned_pers,"turned_not_pers":turned_not_pers}
+
+    def max_persistence_possible_was(self,lmbda,epsilon,expert) :
+        p = self.get_all_possible_was_by_expert(lmbda,epsilon,expert)
+        max_turned_pers = max(p,key=lambda was: len(self.single_labels_persistence(lmbda,epsilon,was)["turned_pers"]))
+        max_turned_not_pers = max(p,key=lambda was: len(self.single_labels_persistence(lmbda,epsilon,was)["turned_not_pers"]))
+        return max_turned_pers,max_turned_not_pers
         
 
 def votes(vector, agent, sign):
@@ -325,7 +344,10 @@ def main():
     sysw.affichegraphe()
     possibles = sysw.get_all_possible_was_by_expert(4, 0.5, exp['Exp1'])
     print(len(possibles))
-    print(sysw.single_attacks_stability(4,0.5,possibles[1]))
+    #print(sysw.single_attacks_stability(4,0.5,possibles[1]))
+    #print(sysw.single_labels_persistence(4,0.5,possibles[1]))
+    print(sysw.max_stability_possible_was(4,0.5,exp['Exp1']))
+    print(sysw.max_persistence_possible_was(4,0.5,exp['Exp1']))
     '''
     gen.generate_file("randomized.txt",5,3)
     exp, ag, was = was_from_file("example.txt")
