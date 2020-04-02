@@ -1,3 +1,4 @@
+4;0.5;
 6;3;4;3;7;
 Exp1;comp;ml;
 Exp2;comp;kr;

@@ -13,6 +13,7 @@ def generate_file(f,nAg,nEx) :
     #Data generation
     nExpert = nEx
     nAgent = nAg
+    l,e = rand.randint(0,nAgent),rand.uniform(0,1)
     top = range(rand.randint(nAgent,nAgent*2))
     agents = [rand.sample(top,rand.randint(1,5)) for i in range(nAgent)]
     experts = [rand.sample(top,rand.randint(1,5)) for i in range(nExpert)]
@@ -37,6 +38,7 @@ def generate_file(f,nAg,nEx) :
             
     #File writing
     with open(f,"w+") as fd :
+        fd.write(str(l)+";"+str(e)+";\n")
         fd.write(str(nExpert)+";"+str(nAgent)+";"+str(nArgument)+";"+str(len(attacks))+";"+str(len(votes))+";\n")
         for i in range(nExpert) :
             fd.write("expert"+str(i)+";")
