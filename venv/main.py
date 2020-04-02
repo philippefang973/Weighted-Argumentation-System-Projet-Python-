@@ -47,7 +47,7 @@ def was_from_file(f):
 
 def main():
     exp, ag, sysw = was_from_file("example.txt")
-    gen.generate_file("randomized.txt",5,3)
+    #gen.generate_file("randomized.txt",4,2)
     #exp, ag, sysw = was_from_file("randomized.txt")
     print("Lambda: "+str(sysw.lmbda)+" | Epsilon: "+str(sysw.epsilon))
     print("\nAgents:")

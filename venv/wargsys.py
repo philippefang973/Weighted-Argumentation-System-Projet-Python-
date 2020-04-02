@@ -122,7 +122,8 @@ class WAS:
         for vote in possible_votes:
             poss_was = self.expert_vote(vote, expert)
             all_possible_was.add(poss_was)
-        return list(all_possible_was)
+        res = list(all_possible_was)
+        return res
 
     def single_attacks_stability(self,possible_was):
         attacks = self.attacks()
@@ -203,7 +204,6 @@ class WAS:
                     p = self.persist_dominate(experts[x],experts[y])
                     l = [e for ens in list(r.values()) for e in ens]+[e for ens in list(p.values()) for e in ens]
                     s+=l.count(experts[x])
-            print("(l'expert "+x+" obtient "+str(s)+" pts)")  
             if s>score :
                 score = s
                 a = experts[x]
