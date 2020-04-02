@@ -203,6 +203,7 @@ class WAS:
                     p = self.persist_dominate(experts[x],experts[y])
                     l = [e for ens in list(r.values()) for e in ens]+[e for ens in list(p.values()) for e in ens]
                     s+=l.count(experts[x])
+            print("(l'expert "+x+" obtient "+str(s)+" pts)")  
             if s>score :
                 score = s
                 a = experts[x]

@@ -47,15 +47,24 @@ def was_from_file(f):
 
 def main():
     exp, ag, sysw = was_from_file("example.txt")
-    print(sysw.pick_expert(exp))
-    '''
     gen.generate_file("randomized.txt",5,3)
-    exp, ag, was = was_from_file("example.txt")
-    c = was.counterpartAS()
-    
-    print(c.labels())
-    c.affichegraphe()
-    '''
+    #exp, ag, sysw = was_from_file("randomized.txt")
+    print("Lambda: "+str(sysw.lmbda)+" | Epsilon: "+str(sysw.epsilon))
+    print("\nAgents:")
+    print(ag)
+    print("\nExperts:")
+    print(exp)
+    print("\nArguments:")
+    print(sysw.sys.arguments)
+    print("\nAttacks:")
+    print(sysw.sys.attacks)
+    print("\nArg labels:")
+    print(sysw.labels())
+    print("\nAttack types:")
+    print(sysw.attacks())
+    print("\nExpert choisi:")
+    print(sysw.pick_expert(exp))
+    sysw.affichegraphe()
 
 
 if __name__ == "__main__":
