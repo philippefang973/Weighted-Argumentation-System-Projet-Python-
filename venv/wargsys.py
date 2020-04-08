@@ -195,8 +195,20 @@ class WAS:
                 if x!=y:
                     r,domR = self.reinforce_dominate(experts[x],experts[y])
                     p,domP = self.persist_dominate(experts[x],experts[y])
+                    if domR==2 :
+                        print("\t"+x+" REINFORCE-dominate "+y)
+                    elif domR==1 :
+                        if r["more_reinforce"] :
+                            print("\t"+x+" optimist reinforce-dominate "+y)
+                        else : print("\t"+x+" pessimist reinforce-dominate "+y)
+                    if domP==2 :
+                        print("\t"+x+" PERSIST-dominate "+y)
+                    elif domP==1 :
+                        if p["more_turn_pers"] :
+                            print("\t"+x+" optimist persist-dominate "+y)
+                        else : print("\t"+x+" pessimist persist-dominate "+y)
                     s+=domR+domP
-            print("score de "+x+": "+str(s))
+            print("score de "+x+": "+str(s)+"\n")
             if s>score :
                 score = s
                 a = experts[x]
