@@ -132,6 +132,7 @@ class WAS:
         weakened = [i for i in attacks["str"] if i.name in list(map(lambda a:a.name,new_attacks["wk"]))]
         return {"reinforced":reinforced,"weakened":weakened}
 
+
     def max_stability_possible_was(self,expert) :
         p = self.get_all_possible_was_by_expert(expert)
         max_stable = max(p,key=lambda was: len(self.single_attacks_stability(was)["reinforced"]))
@@ -155,55 +156,47 @@ class WAS:
         max_stable_i, max_unstable_i = self.max_stability_possible_was(i)
         max_stable_j, max_unstable_j = self.max_stability_possible_was(j)
 
-        stbi = self.single_attacks_stability(max_stable_i)
-        stbj = self.single_attacks_stability(max_stable_j)
-
-        stbi_reinforced = set(stbi["reinforced"])
-        stbj_reinforced = set(stbj["reinforced"])
-
-        stbi_weakened = set(stbi["weakened"])
-        stbj_weakened = set(stbj["weakened"])
-
-        res = {"opti_reinforce_dom":set(),"pess_reinforce_dom":set(),"reinforce_dom":set()}
-        if stbj_reinforced.issubset(stbi_reinforced) : res["opti_reinforce_dom"].add(i)
-        if stbi_weakened.issubset(stbj_weakened) : res["pess_reinforce_dom"].add(i)
-        if stbi_reinforced.issubset(stbj_reinforced) : res["opti_reinforce_dom"].add(j)
-        if stbj_weakened.issubset(stbi_weakened) : res["pess_reinforce_dom"].add(j)
-        res["reinforce_dom"] = res["opti_reinforce_dom"]&res["pess_reinforce_dom"]
-        return res
+        Rstable_i = set(self.single_attacks_stability(max_stable_i)["reinforced"])
+        Rstable_j = set(self.single_attacks_stability(max_stable_j)["reinforced"])
+        Runstable_i = set(self.single_attacks_stability(max_unstable_i)["weakened"])
+        Runstable_j = set(self.single_attacks_stability(max_unstable_j)["weakened"])
+        
+        res = {"more_reinforce":set(),"less_weaken":set()}
+        dom = 0
+        res["more_reinforce"] = Rstable_i-Rstable_j
+        res["less_weaken"] = Runstable_j-Runstable_i
+        if len(res["more_reinforce"])>0 : dom+=1
+        if len(res["less_weaken"])>0 : dom+=1
+        return res,dom
 
     def persist_dominate(self, i, j):
         max_turned_pers_i, max_turned_not_pers_i = self.max_persistence_possible_was(i)
         max_turned_pers_j, max_turned_not_pers_j = self.max_persistence_possible_was(j)
- 
-        stpi = self.single_labels_persistence(max_turned_pers_i)
-        stpj = self.single_labels_persistence(max_turned_pers_j)
 
-        stpi_pers = set(stpi["turned_pers"])
-        stpj_pers = set(stpj["turned_pers"])
+        Rpers_i = set(self.single_labels_persistence(max_turned_pers_i)["turned_pers"])
+        Rpers_j = set(self.single_labels_persistence(max_turned_pers_j)["turned_pers"])
+        Runpers_i = set(self.single_labels_persistence(max_turned_not_pers_i)["turned_not_pers"])
+        Runpers_j = set(self.single_labels_persistence(max_turned_not_pers_j)["turned_not_pers"])
 
-        stpi_not_pers = set(stpi["turned_not_pers"])
-        stpj_not_pers = set(stpj["turned_not_pers"])
-
-        res = {"opti_persist_dom":set(),"pess_persist_dom":set(),"persist_dom":set()}
-        if stpj_pers.issubset(stpi_pers) : res["opti_persist_dom"].add(i)
-        if stpi_not_pers.issubset(stpj_not_pers) : res["pess_persist_dom"].add(i)
-        if stpi_pers.issubset(stpj_pers) : res["opti_persist_dom"].add(j)
-        if stpj_not_pers.issubset(stpi_not_pers) : res["pess_persist_dom"].add(j)
-        res["persist_dom"] = res["opti_persist_dom"]&res["pess_persist_dom"]
-        return res
+        res = {"more_turn_pers":set(),"less_turn_non_pers":set()}
+        dom = 0
+        res["more_turn_pers"] = Rpers_i-Rpers_j
+        res["less_turn_non_pers"] =  Runpers_j-Runpers_i
+        if len(res["more_turn_pers"])>0 : dom+=1
+        if len(res["less_turn_non_pers"])>0 : dom+=1
+        return res,dom
 
     def pick_expert(self,experts) :
         a = None
         score = 0
         for x in list(experts) :
             s = 0
-            for y in list(experts) :
+            for y in list(experts) :               
                 if x!=y:
-                    r = self.reinforce_dominate(experts[x],experts[y])
-                    p = self.persist_dominate(experts[x],experts[y])
-                    l = [e for ens in list(r.values()) for e in ens]+[e for ens in list(p.values()) for e in ens]
-                    s+=l.count(experts[x])
+                    r,domR = self.reinforce_dominate(experts[x],experts[y])
+                    p,domP = self.persist_dominate(experts[x],experts[y])
+                    s+=domR+domP
+            print("score de "+x+": "+str(s))
             if s>score :
                 score = s
                 a = experts[x]
