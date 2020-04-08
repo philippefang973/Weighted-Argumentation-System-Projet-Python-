@@ -196,13 +196,13 @@ class WAS:
                     r,domR = self.reinforce_dominate(experts[x],experts[y])
                     p,domP = self.persist_dominate(experts[x],experts[y])
                     if domR==2 :
-                        print("\t"+x+" REINFORCE-dominate "+y)
+                        print("\t"+x+" REINFORCE-dominate "+y+"\n\t\t"+str(r))
                     elif domR==1 :
                         if r["more_reinforce"] :
                             print("\t"+x+" optimist reinforce-dominate "+y)
                         else : print("\t"+x+" pessimist reinforce-dominate "+y)
                     if domP==2 :
-                        print("\t"+x+" PERSIST-dominate "+y)
+                        print("\t"+x+" PERSIST-dominate "+y+"\n\t\t"+str(p))
                     elif domP==1 :
                         if p["more_turn_pers"] :
                             print("\t"+x+" optimist persist-dominate "+y)
