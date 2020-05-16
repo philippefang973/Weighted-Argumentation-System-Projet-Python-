@@ -9,22 +9,22 @@ class WAS:
     def __init__(self, sys, v, l, e):
         self.sys = sys
         self.vectors = v
-        self.lmbda = l
+        self.delta = l
         self.epsilon = e
 
     def __str__(self) :
         return "WAS("+str(self.sys)+","+str(self.vectors)+")"
-        
+
     def __repr__(self) :
         return str(self)
-    
+
     def getVector(self, att):
         for v in self.vectors:
             if v.attack.name == att.name:
                 return v
         return None
-        
-    def affichegraphe(self):
+
+    def show_graph(self):
         G = nx.DiGraph()
         valueLabels = {}
         for arg in self.sys.arguments:
@@ -54,7 +54,7 @@ class WAS:
         l = {"bd":[],"str":[],"wk":[]}
         for v in self.vectors:
             w, mw, t = v.weight, v.maxWeight, len(v.attack.top)
-            if (w == 0 and mw == 0) or (float(mw)/float(t) > self.lmbda and float(abs(w))/float(mw) > self.epsilon):
+            if (w == 0 and mw == 0) or (float(mw)/float(t) > self.delta and float(abs(w))/float(mw) > self.epsilon):
                 l["bd"].append(v.attack)
             elif (w > 0 and w-t > 0) or (w <= 0 and abs(w)-t >= 0):
                 l["str"].append(v.attack)
@@ -86,7 +86,7 @@ class WAS:
         l = {"pers":[], "not_pers":[]}
         labels = self.labels()
         ltmp = [a.labels() for a in alts]
-        for arg in labels:    
+        for arg in labels:
             b = True
             for k in ltmp:
                 if k[arg] != labels[arg]:
@@ -138,7 +138,7 @@ class WAS:
         max_stable = max(p,key=lambda was: len(self.single_attacks_stability(was)["reinforced"]))
         max_unstable = max(p,key=lambda was: len(self.single_attacks_stability(was)["weakened"]))
         return max_stable,max_unstable
-        
+
     def single_labels_persistence(self,possible_was) :
         pers = self.persistence()
         new_pers = possible_was.persistence()
@@ -160,7 +160,7 @@ class WAS:
         Rstable_j = set(self.single_attacks_stability(max_stable_j)["reinforced"])
         Runstable_i = set(self.single_attacks_stability(max_unstable_i)["weakened"])
         Runstable_j = set(self.single_attacks_stability(max_unstable_j)["weakened"])
-        
+
         res = {"more_reinforce":set(),"less_weaken":set()}
         dom = 0
         res["more_reinforce"] = Rstable_i-Rstable_j
@@ -191,7 +191,7 @@ class WAS:
         score = 0
         for x in list(experts) :
             s = 0
-            for y in list(experts) :               
+            for y in list(experts) :
                 if x!=y:
                     r,domR = self.reinforce_dominate(experts[x],experts[y])
                     p,domP = self.persist_dominate(experts[x],experts[y])
@@ -213,4 +213,3 @@ class WAS:
                 score = s
                 a = experts[x]
         return a
-        

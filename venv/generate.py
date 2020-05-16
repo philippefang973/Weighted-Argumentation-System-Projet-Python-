@@ -1,63 +1,45 @@
 import random as rand
+import itertools as it
 
-def random_partition(l) :
-    s = set(l)
-    res = []
-    while(len(s)>0) :
-        tmp = set(rand.sample(s,rand.randint(1,len(s))))
-        res.append(list(tmp))
-        s = s-tmp
-    return res
-
-def generate_file(f,nAg,nEx) :
+def generate_file(f,nAg,nEx,nTop,nArg,nAtt) :
     #Data generation
-    nExpert = nEx
-    nAgent = nAg
-    l,e = rand.randint(0,nAgent),rand.uniform(0,1)
-    top = range(rand.randint(nAgent,nAgent*2))
-    agents = [rand.sample(top,rand.randint(1,5)) for i in range(nAgent)]
-    experts = [rand.sample(top,rand.randint(1,5)) for i in range(nExpert)]
-    arguments = [random_partition(l) for l in agents]
-    ind = []
-    nArgument = 0
-    for i in arguments :
-        tmp = []
-        for j in i : 
-            tmp.append(nArgument)
-            nArgument+=1
-        ind.append(tmp)
-    attacks = []
-    for i in range(nArgument) :
-         for j in rand.sample(range(nArgument),rand.randint(0,nArgument)) :
-             if i!=j and rand.choice([True,False]) : attacks.append((i,j))
+    l,e = rand.randint(0,nAg),rand.uniform(0,1)
+
+    top = [i for i in range(nTop)]
+    arguments = [rand.sample(top,rand.randint(1,nTop)) for i in range(nArg)] 
+    agents = [rand.sample(top,rand.randint(1,nTop)) for i in range(nAg)]
+    experts = [rand.sample(top,rand.randint(1,nTop)) for i in range(nEx)]
+
+    couple = list(it.product([i for i in range(nArg)],repeat=2))
+    cc = [i for i in couple if i[0]!=i[1]]
+    attacks = rand.sample(cc,nAtt)
 
     votes = []
-    for i in range(nAgent) :
-        for j in range(len(attacks)) :
-            votes.append((i,j,1 if attacks[j][0] in ind[i] else rand.choice([1,-1])))
+    for i in range(nAg) :
+        for j in range(nAtt) :
+            k = rand.choice([1,-1,0])
+            if k!=0 :
+                votes.append((i,j,k))
             
     #File writing
     with open(f,"w+") as fd :
         fd.write(str(l)+";"+str(e)+";\n")
-        fd.write(str(nExpert)+";"+str(nAgent)+";"+str(nArgument)+";"+str(len(attacks))+";"+str(len(votes))+";\n")
-        for i in range(nExpert) :
+        fd.write(str(nEx)+";"+str(nAg)+";"+str(nArg)+";"+str(nAtt)+";"+str(len(votes))+";\n")
+        for i in range(nEx) :
             fd.write("expert"+str(i)+";")
-            for j in agents[i] :
+            for j in experts[i] :
                 fd.write("topic"+str(j)+";")
             fd.write("\n")
-        for i in range(nAgent) :
+        for i in range(nAg) :
             fd.write("agent"+str(i)+";")
             for j in agents[i] :
                 fd.write("topic"+str(j)+";")
             fd.write("\n")
-        x = 0
-        for i in range(len(arguments)) :
+        for i in range(nArg) :
+            fd.write("argument"+str(i)+";")
             for j in arguments[i] :
-                fd.write("argument"+str(x)+";")
-                for k in j :
-                    fd.write("topic"+str(k)+";")
-                x+=1
-                fd.write("\n")
+                fd.write("topic"+str(j)+";")
+            fd.write("\n")
         for i in range(len(attacks)) :
             fd.write("attack"+str(i)+";argument"+str(attacks[i][0])+";argument"+str(attacks[i][1])+";\n")
         for i in range(len(votes)) :

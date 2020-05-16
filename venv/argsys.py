@@ -16,7 +16,7 @@ class AS:
 
     def __repr__(self) :
         return str(self)
-        
+
     def Neighbours(self, a):
         t = []
         for att in self.attacks:
@@ -35,8 +35,8 @@ class AS:
             if not b:
                 t.append(a)
         return t
-                 
-    def affichegraphe(self):
+
+    def show_graph(self):
         G = nx.DiGraph()
         for arg in self.arguments:
             G.add_node(arg.name)
@@ -71,4 +71,3 @@ class AS:
                     if n.name not in visited:
                         tmp.append(n)
         return l
-
