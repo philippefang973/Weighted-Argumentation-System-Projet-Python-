@@ -5,6 +5,7 @@ from attack import *
 from argsys import *
 from wargsys import *
 import generate as gen
+import sys
 
 def was_from_file(f):
      with open(f, "r") as fd:
@@ -46,10 +47,19 @@ def was_from_file(f):
 
 
 def main():
-    #exp, ag, sysw = was_from_file("example.txt")
-    gen.generate_file("randomized.txt",5,5,5,10,10)
-    exp, ag, sysw = was_from_file("randomized.txt")
-    print("Lambda: "+str(sysw.delta)+" | Epsilon: "+str(sysw.epsilon))
+    args = sys.argv[1:]
+    if (len(args)!=1 and len(args)!=6) :
+        print("To execute, please use syntax:")
+        print("IF fileName exists:")
+        print("     python3 main.py fileName")
+        print("OR generate with:")
+        print("     python3 main.py fileName nAgents nExperts nTopics nArguments nAttacks")
+        return
+    if (len(args)==6) :
+        print("generating WAS file...")
+        gen.generate_file(args[0],int(args[1]),int(args[2]),int(args[3]),int(args[4]),int(args[5]))
+    exp, ag, sysw = was_from_file(args[0])
+    print("Delta: "+str(sysw.delta)+" | Epsilon: "+str(sysw.epsilon))
     print("\nAgents:")
     print(ag)
     print("\nExperts:")
@@ -63,6 +73,7 @@ def main():
     print("\nAttack types:")
     print(sysw.attacks())
     print("\nExpert choisi:")
+    print("Calcul en cours...")
     print(sysw.pick_expert(exp))
     sysw.show_graph()
 
